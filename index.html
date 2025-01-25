@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kalkulator Hari Kerja</title>
+  <title>Workday Calculator</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -99,8 +99,8 @@
     <label for="workdayCount">Jumlah Hari Kerja:</label>
     <input type="number" id="workdayCount" value="13" min="1" required><br>
 
-    <label for="dayDifference">Selisih Hari (opsional):</label>
-    <input type="number" id="dayDifference" placeholder="Masukkan selisih hari" min="0"><br>
+    <label for="dayDifference">Selisih Hari:</label>
+    <input type="number" id="dayDifference" value="1" min="1" required><br>
 
     <button onclick="calculateWorkdays()">Hitung Hari Kerja</button>
 
@@ -123,16 +123,14 @@
     function calculateWorkdays() {
       const startDateInput = document.getElementById('startDate').value;
       const workdayCount = parseInt(document.getElementById('workdayCount').value);
-      const dayDifference = parseInt(document.getElementById('dayDifference').value) || 0;
+      const dayDifference = parseInt(document.getElementById('dayDifference').value);
 
-      if (isNaN(workdayCount) || !startDateInput) {
-        alert('Harap masukkan tanggal awal dan jumlah hari kerja dengan benar.');
+      if (isNaN(workdayCount) || isNaN(dayDifference) || !startDateInput) {
+        alert('Harap masukkan tanggal awal, jumlah hari kerja, dan selisih hari dengan benar.');
         return;
       }
 
       const startDate = new Date(startDateInput);
-      startDate.setDate(startDate.getDate() + dayDifference);
-
       const holidays = [
         "01/01/2025", "27/01/2025", "28/01/2025", "29/01/2025", "28/03/2025", "29/03/2025", "31/03/2025",
         "01/04/2025", "02/04/2025", "03/04/2025", "04/04/2025", "07/04/2025", "18/04/2025", "20/04/2025",
@@ -146,10 +144,11 @@
       const resultDiv = document.getElementById('result');
       resultDiv.innerHTML = '';
 
-      const workdays = [];
+      const possibleWorkdays = [];
       let currentDate = new Date(startDate);
 
-      while (workdays.length < workdayCount) {
+      // Collect all possible workdays considering holidays and Sundays
+      while (possibleWorkdays.length < workdayCount * dayDifference) {
         const day = currentDate.getDay();
         const isSunday = day === 0;
         const isHoliday = holidays.some(holiday =>
@@ -157,10 +156,21 @@
         );
 
         if (!isSunday && !isHoliday) {
-          workdays.push(new Date(currentDate));
+          possibleWorkdays.push(new Date(currentDate));
         }
 
         currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      const workdays = [];
+
+      // Filter workdays based on the day difference
+      for (let i = 0; i < possibleWorkdays.length; i += dayDifference) {
+        if (workdays.length < workdayCount) {
+          workdays.push(possibleWorkdays[i]);
+        } else {
+          break;
+        }
       }
 
       const workdayList = workdays
