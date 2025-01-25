@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workday Calculator</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #2c3e50;
+      color: #ecf0f1;
+      overflow-y: auto;
+    }
+
+    .container {
+      background: #34495e;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      margin: 20px;
+    }
+
+    h1 {
+      margin-bottom: 15px;
+      font-size: 24px;
+      color: #ecf0f1;
+    }
+
+    label {
+      font-size: 14px;
+      margin-bottom: 5px;
+      display: block;
+      text-align: left;
+      color: #bdc3c7;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    input {
+      background: #bdc3c7;
+      color: #2c3e50;
+    }
+
+    button {
+      background: #1abc9c;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #16a085;
+    }
+
+    .result {
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    .result h3 {
+      font-size: 18px;
+      color: #ecf0f1;
+    }
+
+    .result p {
+      font-size: 14px;
+      color: #ecf0f1;
+      line-height: 1.6;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Kalkulator Hari Kerja</h1>
+
+    <label for="startDate">Tanggal Awal:</label>
+    <input type="date" id="startDate" value="2025-01-01" required><br>
+
+    <label for="workdayCount">Jumlah Hari Kerja:</label>
+    <input type="number" id="workdayCount" value="13" min="1" required><br>
+
+    <label for="dayDifference">Selisih Hari (opsional):</label>
+    <input type="number" id="dayDifference" placeholder="Masukkan selisih hari" min="0"><br>
+
+    <button onclick="calculateWorkdays()">Hitung Hari Kerja</button>
+
+    <div class="result">
+      <h3>Gabungan Hari Kerja:</h3>
+      <p id="workdayTextJoin"></p>
+    </div>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    function formatDate(date) {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    function calculateWorkdays() {
+      const startDateInput = document.getElementById('startDate').value;
+      const workdayCount = parseInt(document.getElementById('workdayCount').value);
+      const dayDifference = parseInt(document.getElementById('dayDifference').value) || 0;
+
+      if (isNaN(workdayCount) || !startDateInput) {
+        alert('Harap masukkan tanggal awal dan jumlah hari kerja dengan benar.');
+        return;
+      }
+
+      const startDate = new Date(startDateInput);
+      startDate.setDate(startDate.getDate() + dayDifference);
+
+      const holidays = [
+        "01/01/2025", "27/01/2025", "28/01/2025", "29/01/2025", "28/03/2025", "29/03/2025", "31/03/2025",
+        "01/04/2025", "02/04/2025", "03/04/2025", "04/04/2025", "07/04/2025", "18/04/2025", "20/04/2025",
+        "01/05/2025", "12/05/2025", "13/05/2025", "29/05/2025", "30/05/2025", "01/06/2025", "06/06/2025",
+        "27/06/2025", "17/08/2025", "05/09/2025", "09/09/2025", "25/12/2025", "26/12/2025"
+      ].map(date => {
+        const [day, month, year] = date.split('/').map(Number);
+        return new Date(year, month - 1, day);
+      });
+
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '';
+
+      const workdays = [];
+      let currentDate = new Date(startDate);
+
+      while (workdays.length < workdayCount) {
+        const day = currentDate.getDay();
+        const isSunday = day === 0;
+        const isHoliday = holidays.some(holiday =>
+          holiday.toDateString() === currentDate.toDateString()
+        );
+
+        if (!isSunday && !isHoliday) {
+          workdays.push(new Date(currentDate));
+        }
+
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      const workdayList = workdays
+        .map(date => formatDate(date))
+        .join('<br>');
+
+      resultDiv.innerHTML = `<h3>Daftar Hari Kerja:</h3><p>${workdayList}</p>`;
+
+      // Generate text join for workdays with single-digit dates
+      const workdayTextJoin = workdays
+        .map(date => date.getDate().toString())
+        .join('.');
+
+      document.getElementById('workdayTextJoin').innerText = workdayTextJoin;
+    }
+  </script>
+</body>
+</html>
